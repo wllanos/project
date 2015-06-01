@@ -3,11 +3,11 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import datetime
 import sys
 import csv
-import nltk # Classic NLP package
+import nltk
 import re
+
 
 #share of voice
 
@@ -19,27 +19,18 @@ os.chdir('/Users/Heisenberg/Data Science/ProyectoBID')
 #Cleaning data
 #Part 1
 #Many tweets weres in two lines, with the below algorith I've fixed this issue
-tweets = []
-with open('TwitterMentions.csv', 'rU') as f:
-    data = f.readlines()
-#Tweets 67431
-counter = 1
-pNext=''
-pCurrent=''
+with open('TwitterMentions.csv', 'r') as f:
+        dirty = [row for row in csv.reader(f.read().splitlines())]
+len(dirty)
+tweets=[]
 
-for row in range(1,len(data)):
-    if(counter == len(data)-1):
-        break    
-    pCurrent = data[counter]
-    if pCurrent[0:5].isdigit():         
-        pNext = data[counter+1]                    
-        if pNext[0:5].isdigit(): 
-            tweets.append(pCurrent)
-        else:
-            tweets.append(pCurrent + pNext)        
-    counter=counter+1 
+for row in dirty:
+    tweet=''
+    for i in row:
+        tweet = tweet + i
+    if len(tweet.split('::')) == 24:
+        tweets.append(tweet)
 #after the algorith there are 59299 tweets
-
 #Part 2
 #still many tweets were incomplete, with split('::') I will ensure that I get only complete data for every tweet
 colNames =[ 
@@ -91,6 +82,7 @@ tweetUserCreated_at=[]
 tweetUserTime_zone=[]
 tweetUserIs_translator=[]
 tweetBrand=[]
+tweetisColombia=[]
 
 
 #test = 'RT @CpdlRd: @el BiD: ¿Qué BancO interamericano hacer las #ciudades de LatAm +accesibles? http://t.co/ALJUrrmk2u @BID_Ciudades  @armandogarciap http://t.c…'
@@ -100,35 +92,36 @@ tweetBrand=[]
 #RT @geovannyvicentr: El Barómetro de servicio civil está enfocado al buen gobierno, #GobiernoElectronico y #GobiernoAbierto @armandogarciap… 
 
 #ignore case
+op1 = '''\\b'''
+op2 = '''\\b'''
+
+
 for row in tweets:
-    if len(row.split('::')) == 24:
-        tweetText.append(row.split('::')[1])    
-        
+        tweetText.append(row.split('::')[1].encode('ascii','ignore'))        
         if len(re.findall(r"(?i)@el_BID", row.split('::')[1]))>0:
             tweetBrand.append('BID')
-        elif len(re.findall(r'(?i)@el BID', row.split('::')[1]))>0:
+        elif len(re.findall(r'(?i)@el BID', row.split('::')[1]))>0:                        
             tweetBrand.append('BID')
         elif len(re.findall(r"(?i)Banco Interamericano", row.split('::')[1]))>0:
+            tweetBrand.append('BID')   
+        elif len(re.findall(r"(?i)el bid", row.split('::')[1]))>0:            
             tweetBrand.append('BID')
-        elif len(re.findall(r"(?i)el bid", row.split('::')[1]))>0:
-            tweetBrand.append('BID')
-        elif len(re.findall(r"(?i)Banco Mundial", row.split('::')[1]))>0:
-            tweetBrand.append('BANCO MUNDIAL')
-        elif len(re.findall(r"(?i)@BancoMundial", row.split('::')[1]))>0:
+        elif len(re.findall(r"(?i)Banco Mundial", row.split('::')[1]))>0:            
+            tweetBrand.append('BANCO MUNDIAL')        
+        elif len(re.findall(r"(?i)@BancoMundial", row.split('::')[1]))>0:            
             tweetBrand.append('BANCO MUNDIAL')
         elif len(re.findall(r"(?i)BancoMundial", row.split('::')[1]))>0:
             tweetBrand.append('BANCO MUNDIAL')
-        elif len(re.findall(r"(?i)@AgendaCAF", row.split('::')[1]))>0:
+        elif len(re.findall(r"(?i)@AgendaCAF", row.split('::')[1]))>0:            
             tweetBrand.append('CAF')
-        elif len(re.findall(r"(?i)AgendaCAF", row.split('::')[1]))>0:    
+        elif len(re.findall(r"(?i)AgendaCAF", row.split('::')[1]))>0:                
             tweetBrand.append('CAF')
-        elif len(re.findall(r"(?i)banco de desarrollo de AméricaLatina", row.split('::')[1]))>0:
+        elif len(re.findall(r"(?i)banco de desarrollo de AméricaLatina", row.split('::')[1]))>0:            
             tweetBrand.append('CAF')
-        elif len(re.findall(r"(?i)CAF-Banco de desarrollo de América Latina", row.split('::')[1]))>0:
+        elif len(re.findall(r"(?i)CAF-Banco de desarrollo de América Latina", row.split('::')[1]))>0:            
+            tweetBrand.append('CAF')       
+        elif len(re.findall(r"(?i)el caf", row.split('::')[1]))>0:            
             tweetBrand.append('CAF')
-        elif len(re.findall(r"(?i)el caf", row.split('::')[1]))>0:
-            tweetBrand.append('CAF')
-
         else: 
             tweetBrand.append('UNDEFINED')
                     
@@ -147,7 +140,7 @@ for row in tweets:
         tweetUserListed_count.append(row.split('::')[14])
         tweetUserFollowing_count.append(row.split('::')[15])
         #many countris has accent, I need to remove it
-        tweetUserLocation.append(row.split('::')[16].encode("ascii", "ignore"))
+        tweetUserLocation.append(row.split('::')[16].encode("ascii", "ignore").upper())
         tweetUserGeo_enabled.append(row.split('::')[17])
         tweetUserName.append(row.split('::')[18])
         tweetUserLang.append(row.split('::')[19])
@@ -155,6 +148,39 @@ for row in tweets:
         tweetUserCreated_at.append(row.split('::')[21])
         tweetUserTime_zone.append(row.split('::')[22])
         tweetUserIs_translator.append(row.split('::')[23])
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#I've made a Colombia list with every city, statate, county etc
+terms = pd.read_csv('Terms.csv', parse_dates=True)
+#accent removed
+termsCleaned = []
+for term in terms['TERM']:
+    termsCleaned.append(term.encode("ascii", "ignore").strip())
+
+#removing common places in other countris(the following list is irrelevant for our study)
+#FLORENCIA, CÓRDOBA, AMAZONAS,LA PLATA,MADRID
+termsCleaned.remove('FLORENCIA')
+termsCleaned.remove('CRDOBA')
+termsCleaned.remove('AMAZONAS')
+termsCleaned.remove('LA PLATA')
+termsCleaned.remove('FLORIDA')
+termsCleaned.remove('MADRID')
+
+#mapping twData.tweetUserLocation with terms cleaned
+
+for location in tweetUserLocation:
+    flag = 0
+    op1 = '''\\b'''
+    op2 = '''\\b'''
+
+    for place in termsCleaned:
+        if not (re.search(r""+op1+place+op2,location,flags=re.IGNORECASE)) is None: 
+            tweetisColombia.append("1")
+            flag = 1
+            break
+    if flag == 0:
+        tweetisColombia.append("0")
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 cleanData = pd.DataFrame({'tweetId':tweetId, 'tweetText':tweetText
 , 'tweetBrand':tweetBrand
@@ -167,6 +193,7 @@ cleanData = pd.DataFrame({'tweetId':tweetId, 'tweetText':tweetText
 , 'tweetUserScreen_name':tweetUserScreen_name
 , 'tweetUserLang':tweetUserLang
 , 'tweetUserFollowers_count':tweetUserFollowers_count
+, 'tweetIsColombia':tweetisColombia
 })
 cleanData.to_csv('cleaned.csv')
 
@@ -177,27 +204,55 @@ twData = pd.read_csv('cleaned.csv', parse_dates=True)
 
 twData.describe()
 twData.head()
-twData.info#57711 rows x 10 columns
+twData.info#[53987 rows x 13 columns]>
+
+'''
 #Range april 20th to may 28th
 #Many people dont put the country name, they use state name or a kind of variation
-twData['isColombia']  = twData.tweetUserLocation.str.strip().map({'Colombia':1, 'Bogot':1
-, 'Bogot, Colombia':1, 'Bogot D.C.':1, 'Bogota, Colombia':1, 'Bogota':1
-, 'Bogot - Colombia':1, 'Colombia':1, 'Medelln':1, 'Ccuta, Colombia':1
-, 'Cali, Colombia':1, 'Santa Marta':1, 'colombia':1, 'COLOMBIA':1
-, 'Medelln, Colombia':1, 'bogota':1, 'Medellin':1, 'Bogota y Colombia Humana':1
-, 'Barranquilla':1
+twData['isColombia']  = twData.tweetUserLocation.str.strip().map({
+  'BARRANQUILLA':1, 'BARRANQUILLA - COLOMBIA':1
+, 'BARRANQUILLA COLOMBIA':1, 'BOGOT':1, 'BOGOT - COLOMBIA':1, 'BOGOT COLOMBIA':1
+, 'BOGOT COLOMBIA.':1, 'BOGOT D.C':1, 'BOGOT D.C - COLOMBIA':1, 'BOGOT D.C.':1
+, 'BOGOT D.C. COLOMBIA':1, 'BOGOT-COLOMBIA':1, 'BOGOTA':1, 'BOGOTA - COLOMBIA':1
+, 'BOGOTA COLOMBIA':1, 'BOGOTA D.C.':1, 'BOGOTA Y COLOMBIA HUMANA':1, 'BUCARAMANGA':1
+, 'CALI':1, 'CALI - COLOMBIA':1
+, 'CALI COLOMBIA':1, 'CALI- COLOMBIA':1
+, 'CALI-COLOMBIA':1, 'CARTAGENA':1
+, 'CCUTA COLOMBIA':1, 'COLOMBIA':1
+, 'COLOMBIA | MXICO | ESPAA':1, 'MANIZALES':1
+, 'MEDELLIN':1, 'MEDELLIN - COLOMBIA':1
+, 'MEDELLIN COLOMBIA':1, 'MEDELLN':1
+, 'MEDELLN - COLOMBIA':1, 'MEDELLN COLOMBIA':1
+, 'PASTO':1, 'PASTO - NARIO - COLOMBIA':1
+, 'PASTO COLOMBIA!!':1, 'PEREIRA':1
+, 'SANTA MARTA - COLOMBIA':1, 'SANTA MARTA COLOMBIA':1
+, 'VALLEDUPAR':1, 'VALLEDUPAR COLOMBIA':1
 })
+'''
+
+
+cities = twData[twData.tweetIsColombia == 1].tweetUserLocation
+
+#twData['tweetIsColombia'] = np.where(twData.tweetIsColombia == 1, 1, 0)
 #before to remove the accent #808
-twData.isColombia.sum() 
+#manual mapping copying and pasting 2185
 #after to remove the accent 1876
+#afeter to apply a csv mapping 3268
+twData.tweetIsColombia.sum()
 #I have to identify our brand and our competitors
 #Part 4
 #Drawing some charts to see data behavor
 #grouping tweets by brand
-twData.tweetBrand.value_counts().plot(kind='bar', title='tweetBrandName')
+twData.tweetBrand.value_counts().plot(kind='bar', title='')
 plt.xlabel('Brand')
 plt.ylabel('Tweets')
-plt.show()          
+plt.show()   
+
+twData[(twData.tweetBrand == 'BID')].info
+twData[(twData.tweetBrand == 'BANCO MUNDIAL')].info
+twData[(twData.tweetBrand == 'CAF')].info
+twData[(twData.tweetBrand == 'UNDEFINED')].info
+       
 #Part 5
 #Analizing only one country COLOMBIA                     
 #looking for influencers
@@ -207,10 +262,11 @@ plt.ylabel('User followers count')
 plt.show()                                 
 
 #
-twData[twData.isColombia==1].tweetUserFollowers_count.describe()
+
+twData[twData.tweetIsColombia==1].tweetUserFollowers_count.describe()
 #mean       38590.124200
 #max      5257638
-test = twData[(twData.isColombia==1) & (twData.tweetUserFollowers_count == 5257638)]
+test = twData[(twData.tweetIsColombia==1) & (twData.tweetUserFollowers_count == 5257638)]
 #https://twitter.com/NoticiasRCN
 #Banco Interamericano de Desarrollo eligió los Centros para Drogodependientes en #Bogotá como experiencias exitosas. http://t.co/vYcXzITKlO
 #tweet id 597037806331043840
@@ -218,13 +274,46 @@ test = twData[(twData.isColombia==1) & (twData.tweetUserFollowers_count == 52576
 #world bank spanish countries %
 #bid spanish countries %
 #caf spanish countries
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'BID')].info#[937 rows x 14 columns]>
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].info#[569 rows x 14 columns]>
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'CAF')].info#[95 rows x 14 columns]>
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'UNDEFINED')].info#[275 rows x 14 columns]>
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BID')].info#[1572 rows x 14 columns]>
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].info#[1045 rows x 14 columns]>
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'CAF')].info#[131 rows x 14 columns]>
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'UNDEFINED')].info#[520 rows x 14 columns]>
 #getting top 10 followers numbers
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'BID')].tweetUserFollowers_count.order().tail(10)
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].tweetUserFollowers_count.order().tail(10)
-twData[(twData.isColombia==1) & (twData.tweetBrand == 'CAF')].tweetUserFollowers_count.order().tail(10)
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BID')].tweetUserFollowers_count.order().tail(10)
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].tweetUserFollowers_count.order().tail(10)
+twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'CAF')].tweetUserFollowers_count.order().tail(10)
+
+twData.groupby('tweetBrand')['tweetIsColombia'].sum().plot(kind='bar')
+
+
+
+#Part 6
+#Tokenization
+# Tokenize into sentences
+tweets_text = twData[(twData.tweetIsColombia==1)].tweetText
+tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BID')].tweetText
+tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].tweetText
+tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'CAF')].tweetText
+
+sentences = []
+for tweet in tweets_text:
+    for sent in nltk.sent_tokenize(tweet):
+        sentences.append(sent)
+sentences[:10]
+
+tokens = []
+for tweet in tweets_text:
+    for word in nltk.word_tokenize(tweet):
+        tokens.append(word)
+tokens[:10]
+
+
+clean_tokens = [token for token in tokens if re.search('^[a-zA-Z]+', token)]
+clean_tokens[:100]# Tokenize into words
+
+# Count the tokens
+from collections import Counter
+c = Counter(clean_tokens)
+c.most_common(60) # Most frequent tokens
 
 
