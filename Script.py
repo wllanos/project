@@ -285,35 +285,3 @@ twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'CAF')].tweetUserFoll
 
 twData.groupby('tweetBrand')['tweetIsColombia'].sum().plot(kind='bar')
 
-
-
-#Part 6
-#Tokenization
-# Tokenize into sentences
-tweets_text = twData[(twData.tweetIsColombia==1)].tweetText
-tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BID')].tweetText
-tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'BANCO MUNDIAL')].tweetText
-tweets_text = twData[(twData.tweetIsColombia==1) & (twData.tweetBrand == 'CAF')].tweetText
-
-sentences = []
-for tweet in tweets_text:
-    for sent in nltk.sent_tokenize(tweet):
-        sentences.append(sent)
-sentences[:10]
-
-tokens = []
-for tweet in tweets_text:
-    for word in nltk.word_tokenize(tweet):
-        tokens.append(word)
-tokens[:10]
-
-
-clean_tokens = [token for token in tokens if re.search('^[a-zA-Z]+', token)]
-clean_tokens[:100]# Tokenize into words
-
-# Count the tokens
-from collections import Counter
-c = Counter(clean_tokens)
-c.most_common(60) # Most frequent tokens
-
-
